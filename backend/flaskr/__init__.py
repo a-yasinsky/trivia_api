@@ -1,12 +1,22 @@
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
-#from flask_cors import CORS
+from flask_cors import CORS
 import random
 
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
+
+def paginate_questions(request, selection):
+  page = request.args.get('page', 1, type=int)
+  start =  (page - 1) * QUESTIONS_PER_PAGE
+  end = start + QUESTIONS_PER_PAGE
+
+  questions = [quest.format() for quest in selection]
+  current_quests = questions[start:end]
+
+  return current_quests
 
 def create_app(test_config=None):
   # create and configure the app
@@ -16,17 +26,16 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-  #CORS(app)
+  CORS(app)
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
-  '''
   '''
   @app.after_request
   def after_request(response):
       response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
       response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
       return response
-  '''
+
   '''
   @TODO:
   Create an endpoint to handle GET requests
@@ -55,7 +64,20 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions.
   '''
-
+  @app.route('/questions', methods=['GET'])
+  def retrieve_questions():
+      selection = Category.query.order_by(Category.type).all()
+      cats = {cat.id : cat.type for cat in selection}
+      selection = Question.query.all()
+      #GET categories and curr cat
+      quests = paginate_questions(request, selection)
+      return jsonify({
+        'success': True,
+        'questions': quests,
+        'total_questions': len(selection),
+        'categories': cats,
+        'current_category': 1
+      })
   '''
   @TODO:
   Create an endpoint to DELETE question using a question ID.
