@@ -3,6 +3,7 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
+import sys
 
 from models import setup_db, Question, Category
 
@@ -45,7 +46,7 @@ def create_app(test_config=None):
   def retrieve_categries():
 
       selection = Category.query.order_by(Category.type).all()
-      cats = [cat.format() for cat in selection]
+      cats = {cat.id : cat.type for cat in selection}
       return jsonify({
           'success': True,
           'categories': cats,
@@ -105,7 +106,26 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.
   '''
+  @app.route('/questions', methods=['POST'])
+  def create_question():
+      body = request.get_json()
+      
+      new_question = body.get('question', None)
+      new_answer = body.get('answer', None)
+      new_difficulty = body.get('difficulty', None)
+      new_category = body.get('category', None)
 
+      try:
+        question = Question(new_question,new_answer,new_category,new_difficulty)
+        question.insert()
+
+        return jsonify({
+          'success': True
+        })
+
+      except:
+        print(sys.exc_info())
+        abort(422)
   '''
   @TODO:
   Create a POST endpoint to get questions based on a search term.
