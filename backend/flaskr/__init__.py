@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 import sys
+from  sqlalchemy.sql.expression import func
 
 from models import setup_db, Question, Category
 
@@ -178,7 +179,22 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not.
   '''
+  @app.route('/quizzes', methods=['POST'])
+  def get_next_quize_question():
+      body = request.get_json()
 
+      previous_questions = body.get('previous_questions', [])
+      quiz_category = body.get('quiz_category', {})
+      question = Question.query. \
+      filter(Question.category == quiz_category.get('id',0)). \
+      filter(Question.id.notin_(previous_questions)). \
+      order_by(func.random()).first()
+
+      question = question.format() if question else None
+      return jsonify({
+        'success': True,
+        'question': question
+      })
   '''
   @TODO:
   Create error handlers for all expected errors
