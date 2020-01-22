@@ -78,7 +78,7 @@ def create_app(test_config=None):
         'questions': quests,
         'total_questions': len(selection),
         'categories': cats,
-        'current_category': 1
+        'current_category': 'ALL'
       })
   '''
   @TODO:
@@ -93,7 +93,7 @@ def create_app(test_config=None):
       try:
         question.delete()
         return jsonify({
-            'succcess': True,
+            'success': True
         })
       except:
          abort(422)
@@ -148,7 +148,7 @@ def create_app(test_config=None):
         'success': True,
         'questions': questions,
         'total_questions': len(questions),
-        'current_category': 2
+        'current_category': 'ALL'
       })
   '''
   @TODO:
@@ -215,5 +215,21 @@ def create_app(test_config=None):
       "erorr": 422,
       "message": "unprocessable entity"
     }), 422
+
+    @app.errorhandler(400)
+    def not_found(error):
+      return jsonify({
+        "success": False,
+        "erorr": 400,
+        "message": "bad request"
+      }), 400
+
+      @app.errorhandler(500)
+      def not_found(error):
+        return jsonify({
+          "success": False,
+          "erorr": 500,
+          "message": "internal server error"
+        }), 500
 
   return app
