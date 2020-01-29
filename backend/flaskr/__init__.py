@@ -47,6 +47,10 @@ def create_app(test_config=None):
   def retrieve_categries():
 
       selection = Category.query.order_by(Category.type).all()
+
+      if len(selection) == 0:
+          abort(404)
+
       cats = {cat.id : cat.type for cat in selection}
       return jsonify({
           'success': True,
@@ -73,6 +77,8 @@ def create_app(test_config=None):
       selection = Question.query.all()
       #GET categories and curr cat
       quests = paginate_questions(request, selection)
+      if len(quests) == 0:
+          abort(404)
       return jsonify({
         'success': True,
         'questions': quests,
@@ -89,8 +95,9 @@ def create_app(test_config=None):
   '''
   @app.route('/questions/<int:question_id>', methods=['DELETE'])
   def delete_question(question_id):
-      question = Question.query.get_or_404(question_id)
+
       try:
+        question = Question.query.get_or_404(question_id)
         question.delete()
         return jsonify({
             'success': True
