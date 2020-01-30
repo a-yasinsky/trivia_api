@@ -201,8 +201,12 @@ def create_app(test_config=None):
 
         previous_questions = body.get('previous_questions', [])
         quiz_category = body.get('quiz_category', {})
-        question = Question.query. \
-            filter(Question.category == quiz_category.get('id', 0)). \
+        category_id = quiz_category.get('id', 0)
+        question = Question.query
+        if category_id != 0:
+            question = question. \
+                filter(Question.category == category_id)
+        question = question. \
             filter(Question.id.notin_(previous_questions)). \
             order_by(func.random()).first()
 
